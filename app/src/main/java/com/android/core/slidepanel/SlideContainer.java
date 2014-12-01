@@ -20,7 +20,7 @@ public class SlideContainer extends ViewGroup{
     }
 
     private int bottomTopOffset ;
-    private int bottomOffset = 200;
+    private int bottomOffset ;
 
     public SlideContainer(Context context) {
         super(context);
@@ -37,8 +37,11 @@ public class SlideContainer extends ViewGroup{
         content.layout(0, 0, width, height - bottomOffset);
 
         // botomview layout
+
         if(bottomTopHeader!=null){
-            bottomTopHeader.layout(0, -0, width, bottomTopOffset);
+            bottomTopOffset = +bottomTopHeader.getMeasuredHeight();
+            viewBottom.setTopOffset(bottomTopOffset);
+            bottomTopHeader.layout(0, -bottomTopOffset, width, 0);
         }
         viewBottom.layout(0, height - bottomOffset, width, 2 * height
                 - bottomOffset);
@@ -49,27 +52,21 @@ public class SlideContainer extends ViewGroup{
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = getDefaultSize(0, widthMeasureSpec);
         int height = getDefaultSize(0, heightMeasureSpec);
-        setMeasuredDimension(width, height);
 
         final int contentWidth = getChildMeasureSpec(widthMeasureSpec, 0, width);
         final int contentHeight = getChildMeasureSpec(heightMeasureSpec, 0,
                 height - bottomOffset);
         content.measure(contentWidth, contentHeight);
 
-//        mea
-        final int bottomTopWidth = getChildMeasureSpec(widthMeasureSpec, 0,
-                width);
-//        bottomTopHeader.measure(bottomTopWidth, MeasureSpec.UNSPECIFIED);
-//
-////        measureChild(bottomTopHeader,width,height);
-//        bottomTopOffset = MeasureSpec.makeMeasureSpec(heightMeasureSpec,MeasureSpec.);
-        measureViewChild(bottomTopHeader,bottomTopWidth,MeasureSpec.makeMeasureSpec(heightMeasureSpec,MeasureSpec.UNSPECIFIED));
+        measureChild(bottomTopHeader, width, height);
 
         viewBottom.setTopOffset(bottomTopOffset);
         final int bottomWidth = getChildMeasureSpec(widthMeasureSpec, 0, width);
         final int bottomHeight = getChildMeasureSpec(heightMeasureSpec, 0,
                 height - bottomTopOffset);
         viewBottom.measure(bottomWidth, bottomHeight);
+
+        setMeasuredDimension(width, height);
     }
 
     protected void measureViewChild(View child, int parentWidthMeasureSpec,
@@ -77,9 +74,9 @@ public class SlideContainer extends ViewGroup{
         final LayoutParams lp = child.getLayoutParams();
         Log.d("","measureViewChild params "+ lp.height);
         final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
-                0, lp.width);
-        final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
-                0, lp.height);
+                0, parentWidthMeasureSpec);
+        final int childHeightMeasureSpec = getChildMeasureSpec(MeasureSpec.UNSPECIFIED,
+                0, parentHeightMeasureSpec);
 
         child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
         bottomTopOffset = child.getMeasuredHeight();
@@ -98,8 +95,12 @@ public class SlideContainer extends ViewGroup{
         addView(content);
     }
 
+    /**
+     * must use inflate with parent to avoid measure problem
+     * @param resId
+     */
     public void setBottomTopHeader(int resId) {
-        View view = LayoutInflater.from(getContext()).inflate(resId, null);
+        View view = LayoutInflater.from(getContext()).inflate(resId, this,false);
         setBottomTopHeader(view);
     }
 
@@ -112,7 +113,7 @@ public class SlideContainer extends ViewGroup{
 
     public void setBottomView(int resId) {
         try {
-            BottomView view = (BottomView) LayoutInflater.from(getContext()).inflate(resId, null);
+            BottomView view = (BottomView) LayoutInflater.from(getContext()).inflate(resId, this,false);
             setBottomView(view);
         }catch (ClassCastException e){
             try {
@@ -135,9 +136,11 @@ public class SlideContainer extends ViewGroup{
             }
 
             @Override
-            public void onSlide(float distanceSlide) {
+            public void onSlide(float divTouch, float maxDistance) {
+                Log.d("","onSlide bottomtopheader  "+ divTouch);
                 if(bottomTopHeader!=null){
-                    bottomTopHeader.layout(bottomTopHeader.getLeft(),bottomTopHeader.getTop()-(int)distanceSlide,bottomTopHeader.getRight(),bottomTopHeader.getBottom());
+                    int top = bottomTopHeader.getTop()-(int)(divTouch/maxDistance*bottomTopHeader.getHeight());
+                    bottomTopHeader.layout(bottomTopHeader.getLeft(),top,bottomTopHeader.getRight(),top+bottomTopHeader.getHeight());
                 }
             }
 
@@ -155,7 +158,7 @@ public class SlideContainer extends ViewGroup{
         if(viewBottom!=null){
             viewBottom.setBottomOffset(bottomOffset);
         }
-        invalidate();
+//        invalidate();
     }
 
     public void setBottomTopOffset(int bottomTopOffset) {

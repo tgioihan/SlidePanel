@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
+import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 import android.widget.Scroller;
@@ -15,7 +16,7 @@ import android.widget.Scroller;
 /**
  * Created by tuannx on 12/1/2014.
  */
-public class BottomView extends FrameLayout {
+public class BottomView extends View {
     private static final int MIN_DISTANCE_FOR_FLING = 25;
     private static final int MAX_DURATION_FOR_FLING = 500;
     int mBottomTopOffset;
@@ -144,7 +145,8 @@ public class BottomView extends FrameLayout {
         int viewTop = getTop() + (int) divTouch;
         layout(getLeft(), viewTop, getRight(), viewTop + getHeight());
         if(slideListener!=null){
-            slideListener.onSlide(divTouch);
+            maxDistance = getHeight() - mBottomTopOffset-bottomOffset;
+            slideListener.onSlide(divTouch,maxDistance);
         }
         Log.d("", "moveViewByY viewTop " + viewTop);
     }
@@ -165,6 +167,9 @@ public class BottomView extends FrameLayout {
         private static final String tag = "Fillinger";
         private Scroller mScroller;
         private int lastY;
+        private boolean more;
+        private int currentY;
+        private int diffY;
 
         public Fillinger(Context context) {
             mScroller = new Scroller(context);
@@ -183,9 +188,9 @@ public class BottomView extends FrameLayout {
 
         @Override
         public void run() {
-            boolean more = mScroller.computeScrollOffset();
-            int currentY = mScroller.getCurrY();
-            final int diffY = lastY - currentY;
+            more = mScroller.computeScrollOffset();
+            currentY = mScroller.getCurrY();
+            diffY = lastY - currentY;
             moveViewByY(diffY);
             lastY = currentY;
             Log.d("", "onscroll " + diffY + " currentY " + currentY);
