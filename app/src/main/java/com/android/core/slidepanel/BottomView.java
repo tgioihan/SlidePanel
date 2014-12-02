@@ -8,7 +8,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
-import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 import android.widget.Scroller;
@@ -16,7 +15,7 @@ import android.widget.Scroller;
 /**
  * Created by tuannx on 12/1/2014.
  */
-public class BottomView extends View {
+public class BottomView extends FrameLayout {
     private static final int MIN_DISTANCE_FOR_FLING = 25;
     private static final int MAX_DURATION_FOR_FLING = 500;
     int mBottomTopOffset;
@@ -36,7 +35,7 @@ public class BottomView extends View {
     /**
      * max slide distance
      */
-    private float maxDistance;
+    private int maxDistance;
 
 
     public BottomView(Context context) {
@@ -76,12 +75,16 @@ public class BottomView extends View {
             return true;
         }
         final int action = ev.getAction();
-        if (velocityTracker == null) {
-            velocityTracker = VelocityTracker.obtain();
-        }
-        velocityTracker.addMovement(ev);
+
         switch (action & MotionEventCompat.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
+                if (velocityTracker == null) {
+                    velocityTracker = VelocityTracker.obtain();
+                }else {
+                    // Reset the velocity tracker back to its initial state.
+                    velocityTracker.clear();
+                }
+                velocityTracker.addMovement(ev);
                 // Remember where the motion event started
                 int index = MotionEventCompat.getActionIndex(ev);
                 mActivePointerId = MotionEventCompat.getPointerId(ev, index);
@@ -89,13 +92,15 @@ public class BottomView extends View {
                 removeCallbacks(fillinger);
                 break;
             case MotionEvent.ACTION_MOVE:
+                velocityTracker.addMovement(ev);
                 divTouch = ev.getY() + getTop() - lastY;
                 lastY = ev.getY() + getTop();
                 moveViewByY(divTouch);
+                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
                 break;
 
             case MotionEvent.ACTION_UP:
-                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+
                 int initialVelocity = (int) VelocityTrackerCompat.getYVelocity(
                         velocityTracker, mActivePointerId);
 
@@ -105,8 +110,7 @@ public class BottomView extends View {
                 break;
             case MotionEvent.ACTION_CANCEL:
                 velocityTracker.recycle();
-                return super.onTouchEvent(ev);
-
+                break;
         }
 
         return true;
@@ -114,7 +118,7 @@ public class BottomView extends View {
 
     private void onTouchUp(int initialVelocity) {
         Log.d("", "ontouchup initialVelocity " + initialVelocity);
-        maxDistance = getHeight() - mBottomTopOffset;
+        maxDistance = getHeight() - bottomOffset;
         if (initialVelocity < 0) {
             //up
 //               float divY =mBottomTopOffset - getTop();
@@ -124,14 +128,14 @@ public class BottomView extends View {
         } else if (initialVelocity > 0) {
             //down
             float divY = getHeight() - getTop();
-            fillinger.startScroll(getTop(), getHeight() - bottomOffset, maxDistance, MAX_DURATION_FOR_FLING);
+            fillinger.startScroll(getTop(), getHeight() +mBottomTopOffset - bottomOffset, maxDistance, MAX_DURATION_FOR_FLING);
             Log.d("", "startScroll " + getTop() + " endY " + (getHeight() - bottomOffset) + " velocity " + initialVelocity);
         } else {
             //no velocity,  slide by position
             float divTopY = mBottomTopOffset - getTop();
             float divBottomY = getHeight() - getTop();
             if (Math.abs(divTopY) >= maxDistance / 2) {
-                fillinger.startScroll(getTop(), getHeight() - bottomOffset, maxDistance, MAX_DURATION_FOR_FLING);
+                fillinger.startScroll(getTop(), getHeight() +mBottomTopOffset - bottomOffset, maxDistance, MAX_DURATION_FOR_FLING);
                 Log.d("", "startScroll " + getTop() + " endY " + (getHeight() - bottomOffset) + " velocity " + initialVelocity);
             } else {
                 fillinger.startScroll(getTop(), mBottomTopOffset, maxDistance, MAX_DURATION_FOR_FLING);
@@ -145,8 +149,12 @@ public class BottomView extends View {
         int viewTop = getTop() + (int) divTouch;
         layout(getLeft(), viewTop, getRight(), viewTop + getHeight());
         if(slideListener!=null){
-            maxDistance = getHeight() - mBottomTopOffset-bottomOffset;
-            slideListener.onSlide(divTouch,maxDistance);
+            Log.d("","moveViewByY height  "+ getHeight()+" ");
+            maxDistance = getHeight()  -bottomOffset;
+            int offset =   getTop() -
+                    mBottomTopOffset;
+            Log.d("", "moveViewByY listenner  " + offset +" "+maxDistance + " gettop "+ getTop());
+            slideListener.onSlide(offset,maxDistance);
         }
         Log.d("", "moveViewByY viewTop " + viewTop);
     }

@@ -1,5 +1,6 @@
 package com.android.test;
 
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -19,7 +20,19 @@ public class MainActivity extends ActionBarActivity {
         slideContainer.setBottomView(R.layout.frame2);
         slideContainer.setBottomTopHeader(R.layout.frame3);
         slideContainer.setBottomOffset(200);
-        slideContainer.setBottomTopOffset(100);
+
+        getSupportFragmentManager().beginTransaction().replace(R.id.frame1,getBaseFragment("Content"))
+                .replace(R.id.frame2,getBaseFragment("Bottom"))
+                .replace(R.id.frame3,getBaseFragment("BottomTopHeader"))
+                .commit();
+    }
+
+    private Fragment getBaseFragment(String top) {
+        BaseFragment baseFragment = new BaseFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString("tag",top);
+        baseFragment.setArguments(bundle);
+        return baseFragment;
     }
 
 

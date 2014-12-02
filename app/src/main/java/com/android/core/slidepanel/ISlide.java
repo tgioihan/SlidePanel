@@ -5,6 +5,6 @@ package com.android.core.slidepanel;
  */
 public interface ISlide {
     public void onStartSlide();
-    public void onSlide(float divTouch, float maxDistance);
+    public void onSlide(int offset, int maxDistance);
     public void onSlideFinish();
 }
