@@ -3,8 +3,10 @@ package com.android.test;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.android.core.slidepanel.SlideContainer;
 
@@ -20,6 +22,23 @@ public class MainActivity extends ActionBarActivity {
         slideContainer.setBottomView(R.layout.frame2);
         slideContainer.setBottomTopHeader(R.layout.frame3);
         slideContainer.setBottomOffset(200);
+        slideContainer.setSlideChangeListener(new SlideContainer.ISlideChange() {
+            @Override
+            public void onStartSlide(boolean bottomIn) {
+
+            }
+
+            @Override
+            public void onSlide(int offset, boolean bottomIn) {
+
+            }
+
+            @Override
+            public void onSlideFinish(boolean bottomIn) {
+                Log.d("","onSlideFinish "+bottomIn);
+                Toast.makeText(MainActivity.this,"onSlideFinish "+bottomIn,Toast.LENGTH_SHORT).show();
+            }
+        });
 
         getSupportFragmentManager().beginTransaction().replace(R.id.frame1,getBaseFragment("Content"))
                 .replace(R.id.frame2,getBaseFragment("Bottom"))

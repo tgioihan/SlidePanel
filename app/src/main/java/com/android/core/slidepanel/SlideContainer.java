@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 /**
  * Created by tuannx on 12/1/2014.
  */
-public class SlideContainer extends ViewGroup{
+public class SlideContainer extends ViewGroup {
     private View content;
     private View bottomTopHeader;
     private BottomView viewBottom;
@@ -19,8 +19,18 @@ public class SlideContainer extends ViewGroup{
         return bottomTopOffset;
     }
 
-    private int bottomTopOffset ;
-    private int bottomOffset ;
+    private int bottomTopOffset;
+    private int bottomOffset;
+
+    public ISlideChange getSlideChangeListener() {
+        return slideChangeListener;
+    }
+
+    public void setSlideChangeListener(ISlideChange slideChangeListener) {
+        this.slideChangeListener = slideChangeListener;
+    }
+
+    private ISlideChange slideChangeListener;
 
     public SlideContainer(Context context) {
         super(context);
@@ -38,11 +48,11 @@ public class SlideContainer extends ViewGroup{
 
         // botomview layout
 
-        if(bottomTopHeader!=null){
-            bottomTopHeader.layout(0, -bottomTopOffset, width,0);
+        if (bottomTopHeader != null) {
+            bottomTopHeader.layout(0, -bottomTopOffset, width, 0);
         }
-        viewBottom.layout(0, height - bottomOffset, width,  height
-                - bottomOffset+ viewBottom.getMeasuredHeight());
+        viewBottom.layout(0, height - bottomOffset, width, height
+                - bottomOffset + viewBottom.getMeasuredHeight());
 
     }
 
@@ -58,11 +68,11 @@ public class SlideContainer extends ViewGroup{
 
         measureChild(bottomTopHeader, width, height);
         bottomTopOffset = +bottomTopHeader.getMeasuredHeight();
-        Log.d(""   ,"bottomTopOffset "+bottomTopOffset);
+        Log.d("", "bottomTopOffset " + bottomTopOffset);
         viewBottom.setTopOffset(bottomTopOffset);
 
         final int bottomWidth = getChildMeasureSpec(widthMeasureSpec, 0, width);
-        final int bottomHeight = MeasureSpec.makeMeasureSpec(height-bottomTopOffset,MeasureSpec.EXACTLY);
+        final int bottomHeight = MeasureSpec.makeMeasureSpec(height - bottomTopOffset, MeasureSpec.EXACTLY);
         viewBottom.measure(bottomWidth, bottomHeight);
 
         setMeasuredDimension(width, height);
@@ -82,10 +92,11 @@ public class SlideContainer extends ViewGroup{
 
     /**
      * must use inflate with parent to avoid measure problem
+     *
      * @param resId
      */
     public void setBottomTopHeader(int resId) {
-        View view = LayoutInflater.from(getContext()).inflate(resId, this,false);
+        View view = LayoutInflater.from(getContext()).inflate(resId, this, false);
         setBottomTopHeader(view);
     }
 
@@ -98,16 +109,15 @@ public class SlideContainer extends ViewGroup{
 
     public void setBottomView(int resId) {
         try {
-            BottomView view = (BottomView) LayoutInflater.from(getContext()).inflate(resId, this,false);
+            BottomView view = (BottomView) LayoutInflater.from(getContext()).inflate(resId, this, false);
             setBottomView(view);
-        }catch (ClassCastException e){
+        } catch (ClassCastException e) {
             try {
                 throw new Exception("bottom view must be instance of BottomView");
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
         }
-
     }
 
     public void setBottomView(BottomView v) {
@@ -117,32 +127,46 @@ public class SlideContainer extends ViewGroup{
         viewBottom.setSlideListener(new ISlide() {
             @Override
             public void onStartSlide() {
-
+                if(slideChangeListener!=null){
+                    boolean bottomIn = isBottomIn();
+                    slideChangeListener.onStartSlide(bottomIn);
+                }
             }
 
             @Override
             public void onSlide(int offset, int maxDistance) {
-                Log.d("","onSlide bottomtopheader  "+ offset+" "+ maxDistance + " "+ bottomTopHeader.getHeight());
-                if(bottomTopHeader!=null){
-                    Log.d("","onSlide height  "+ bottomTopHeader.getHeight()+" ");
-                    int top =-(offset*bottomTopHeader.getHeight()/maxDistance);
-                    Log.d("","onSlide top  "+ top+" ");
-                    bottomTopHeader.layout(bottomTopHeader.getLeft(),top,bottomTopHeader.getRight(),top+bottomTopHeader.getHeight());
+                Log.d("", "onSlide bottomtopheader  " + offset + " " + maxDistance + " " + bottomTopHeader.getHeight());
+                if (bottomTopHeader != null) {
+                    Log.d("", "onSlide height  " + bottomTopHeader.getHeight() + " ");
+                    int top = -(offset * bottomTopHeader.getHeight() / maxDistance);
+                    Log.d("", "onSlide top  " + top + " ");
+                    bottomTopHeader.layout(bottomTopHeader.getLeft(), top, bottomTopHeader.getRight(), top + bottomTopHeader.getHeight());
+                }
+                if(slideChangeListener!=null){
+                    boolean bottomIn = isBottomIn();
+                    slideChangeListener.onSlide(offset, bottomIn);
                 }
             }
 
             @Override
             public void onSlideFinish() {
-
+                if(slideChangeListener!=null){
+                    boolean bottomIn = isBottomIn();
+                    slideChangeListener.onSlideFinish(bottomIn);
+                }
             }
         });
         addView(viewBottom);
     }
 
+    public boolean isBottomIn() {
+        return !(viewBottom.getTop()>bottomOffset);
+    }
+
 
     public void setBottomOffset(int bottomOffset) {
         this.bottomOffset = bottomOffset;
-        if(viewBottom!=null){
+        if (viewBottom != null) {
             viewBottom.setBottomOffset(bottomOffset);
         }
 //        invalidate();
@@ -150,8 +174,17 @@ public class SlideContainer extends ViewGroup{
 
     public void setBottomTopOffset(int bottomTopOffset) {
         this.bottomTopOffset = bottomTopOffset;
-        if(viewBottom!=null){
+        if (viewBottom != null) {
             viewBottom.setTopOffset(bottomTopOffset);
         }
+    }
+
+    public interface ISlideChange {
+
+        void onStartSlide(boolean bottomIn);
+
+        void onSlide(int offset, boolean bottomIn);
+
+        void onSlideFinish(boolean bottomIn);
     }
 }
