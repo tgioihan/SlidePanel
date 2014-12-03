@@ -122,26 +122,26 @@ public class BottomView extends FrameLayout {
         if (initialVelocity < 0) {
             //up
 //               float divY =mBottomTopOffset - getTop();
-            fillinger.startScroll(getTop(), mBottomTopOffset, maxDistance, MAX_DURATION_FOR_FLING);
-            Log.d("", "startScroll " + getTop() + " endY " + mBottomTopOffset + " velocity " + initialVelocity);
+            slideToY(mBottomTopOffset);
 
         } else if (initialVelocity > 0) {
             //down
-            float divY = getHeight() - getTop();
-            fillinger.startScroll(getTop(), getHeight() +mBottomTopOffset - bottomOffset, maxDistance, MAX_DURATION_FOR_FLING);
-            Log.d("", "startScroll " + getTop() + " endY " + (getHeight() - bottomOffset) + " velocity " + initialVelocity);
+            slideToY(getHeight() +mBottomTopOffset - bottomOffset);
         } else {
             //no velocity,  slide by position
             float divTopY = mBottomTopOffset - getTop();
             float divBottomY = getHeight() - getTop();
             if (Math.abs(divTopY) >= maxDistance / 2) {
-                fillinger.startScroll(getTop(), getHeight() +mBottomTopOffset - bottomOffset, maxDistance, MAX_DURATION_FOR_FLING);
-                Log.d("", "startScroll " + getTop() + " endY " + (getHeight() - bottomOffset) + " velocity " + initialVelocity);
+
             } else {
-                fillinger.startScroll(getTop(), mBottomTopOffset, maxDistance, MAX_DURATION_FOR_FLING);
-                Log.d("", "startScroll " + getTop() + " endY " + mBottomTopOffset + " velocity " + initialVelocity);
+                slideToY(mBottomTopOffset);
             }
         }
+    }
+
+    public void slideToY(float desY){
+        maxDistance = getHeight() - bottomOffset;
+        fillinger.startScroll(getTop(), desY, maxDistance, MAX_DURATION_FOR_FLING);
     }
 
     private void moveViewByY(float divTouch) {

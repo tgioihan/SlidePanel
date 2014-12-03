@@ -163,6 +163,17 @@ public class SlideContainer extends ViewGroup {
         return !(viewBottom.getTop()>bottomOffset);
     }
 
+    public void setBotomIn(boolean bottomIn){
+        if(bottomIn){
+            if(!isBottomIn()){
+                viewBottom.slideToY(bottomTopOffset);
+            }
+        }else{
+            if(isBottomIn()){
+                viewBottom.slideToY(getHeight()  - bottomOffset);
+            }
+        }
+    }
 
     public void setBottomOffset(int bottomOffset) {
         this.bottomOffset = bottomOffset;
